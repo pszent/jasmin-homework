@@ -1,0 +1,1 @@
+docker run -ti -p 8888:8888 pszentg/jasmin-demo:latest
