@@ -1,6 +1,5 @@
 import os
 
-from cv2.cv2 import imread
 from torch.utils.data import Dataset
 
 from app.preprocess import preprocess
@@ -18,9 +17,4 @@ class CustomDataset(Dataset):
         return len(self.image_paths)
 
     def __getitem__(self, idx):
-        img = imread(self.image_paths[idx])
-        if img is not None:
-            return preprocess(img)
-        else:
-            print(f'could not find file: {self.image_paths[idx]}')
-            raise FileNotFoundError
+        return preprocess(self.image_paths[idx])

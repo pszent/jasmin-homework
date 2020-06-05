@@ -2,7 +2,7 @@ import json
 
 import torch
 from torch.utils.data import DataLoader
-from torchvision import models
+from app.resnet_embedding import Resnet50emb
 
 from app.dataset import CustomDataset
 
@@ -15,23 +15,23 @@ dataset = CustomDataset('../data/')
 dataloader = DataLoader(dataset, batch_size=32,
                         shuffle=False, num_workers=4)
 
-model = models.resnet50(pretrained=True)
+model = Resnet50emb()
 if torch.cuda.is_available():
     model.cuda()
+
+# switch to eval so inference is quicker
+model.eval()
 
 for batch in dataloader:
     batch = batch.to(device, dtype=torch.float)
     with torch.no_grad():
-        output = model(batch)
+        embedding, output = model(batch)
 
-    softmaxed = torch.softmax(output, dim=1)
-
-    # get the label indexes
-    label_indexes = torch.argmax(output, dim=1).cpu().numpy()
+    softmaxed = torch.softmax(embedding, dim=1)
 
     # get means and variances - could be done with the torch.var_mean() too but this is more readable
-    mean = torch.mean(output, dim=1).cpu().numpy()
-    variance = torch.var(output, dim=1).cpu().numpy()
+    mean = torch.mean(embedding, dim=1).cpu().numpy()
+    variance = torch.var(embedding, dim=1).cpu().numpy()
 
     for index, value in enumerate(mean):
         print(f'mean: {value} variance: {variance[index]} of image #{index + 1}')
@@ -44,5 +44,5 @@ for batch in dataloader:
 
     for index, value in enumerate(indices):
         print(
-            f'this is {probabilities[index][0] * 100:.2f}% a {labels[str(value[0])]} and '
+            f'image #{index+1} is {probabilities[index][0] * 100:.2f}% a {labels[str(value[0])]} and '
             f'{probabilities[index][1] * 100:.2f}% a {labels[str(value[1])]}')
