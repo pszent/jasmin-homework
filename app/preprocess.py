@@ -4,14 +4,18 @@ import torch
 
 
 def preprocess(img):
+    # zoom 150%
     img = cv2.resize(img, (0, 0), fx=1.5, fy=1.5, interpolation=cv2.INTER_LINEAR)
+
+    # random crop 100*100
     max_x = img.shape[1] - 100
     max_y = img.shape[0] - 100
 
     x = np.random.randint(0, max_x)
     y = np.random.randint(0, max_y)
-
     crop = img[y: y + 100, x: x + 100]
+
+    # add padding to make the image 224*224 - resnet expects that size
     cropped = cv2.copyMakeBorder(crop, 62, 62, 62, 62,
                                  borderType=cv2.BORDER_CONSTANT)
 

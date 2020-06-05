@@ -10,8 +10,9 @@ class CustomDataset(Dataset):
     def __init__(self, data_folder_path):
         self.image_paths = []
         self.root = data_folder_path
-        for file in os.listdir(data_folder_path):
-            self.image_paths.append(os.path.join(self.root, file))
+        for path in os.listdir(data_folder_path):
+            if not os.path.isdir(os.path.join(self.root, path)):
+                self.image_paths.append(os.path.join(self.root, path))
 
     def __len__(self):
         return len(self.image_paths)
@@ -21,4 +22,5 @@ class CustomDataset(Dataset):
         if img is not None:
             return preprocess(img)
         else:
-            raise FileNotFoundError('could not find file')
+            print(f'could not find file: {self.image_paths[idx]}')
+            raise FileNotFoundError
