@@ -1,28 +1,26 @@
-import cv2
-import numpy as np
-import torch
+from PIL import Image
+import torchvision.transforms as T
 
 
-def preprocess(img):
-    # zoom 150%
-    img = cv2.resize(img, (0, 0), fx=1.5, fy=1.5, interpolation=cv2.INTER_LINEAR)
+class ZoomIn(object):
 
-    # random crop 100*100
-    max_x = img.shape[1] - 100
-    max_y = img.shape[0] - 100
+    def __init__(self, r):
+        self.r = r
 
-    x = np.random.randint(0, max_x)
-    y = np.random.randint(0, max_y)
-    crop = img[y: y + 100, x: x + 100]
+    def __call__(self, img):
+        newsize = (int(img.width * self.r), int(img.height * self.r))
+        return img.resize(newsize)
 
-    # add padding to make the image 224*224 - resnet expects that size
-    cropped = cv2.copyMakeBorder(crop, 62, 62, 62, 62,
-                                 borderType=cv2.BORDER_CONSTANT)
 
-    # cv2.imshow('img', cropped)
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
+def preprocess(path):
+    augs = T.Compose([
+        ZoomIn(1.5),
+        T.RandomCrop(100),
+        T.Pad(62),
+        T.ToTensor(),
+        T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    ])
 
-    ar = torch.from_numpy(cropped)
-    # cv2 returns HxWxC format but I need CxHxW
-    return ar.permute(2, 0, 1)
+    img = Image.open(path).convert("RGB")
+    img = augs(img)
+    return img
