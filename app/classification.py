@@ -1,12 +1,13 @@
 import json
-
+import os
+import time
 import torch
 from torch.utils.data import DataLoader
 from app.resnet_embedding import Resnet50emb
 
 from app.dataset import CustomDataset
 
-with open('class_indexes.json', 'r') as f:
+with open(os.path.join(os.getcwd(), 'class_indexes.json'), 'r') as f:
     labels = json.load(f)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -21,6 +22,8 @@ if torch.cuda.is_available():
 
 # switch to eval so inference is quicker
 model.eval()
+
+start = time.time()
 
 for batch in dataloader:
     batch = batch.to(device, dtype=torch.float)
@@ -46,3 +49,5 @@ for batch in dataloader:
         print(
             f'image #{index+1} is {probabilities[index][0] * 100:.2f}% a {labels[str(value[0])]} and '
             f'{probabilities[index][1] * 100:.2f}% a {labels[str(value[1])]}')
+
+    print(f'inference in python took {time.time()-start:.2f} seconds')
